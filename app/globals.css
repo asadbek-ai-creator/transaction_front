@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: #0b0e13;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(198, 138, 62, 0.08), transparent);
+  color: #e8ecf2;
+}
+
+::selection {
+  background: rgba(198, 138, 62, 0.35);
+}
+
+.ledger-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.ledger-table th {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.ledger-table td {
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes dash-in {
+  from {
+    stroke-dashoffset: var(--dash-start);
+  }
+  to {
+    stroke-dashoffset: var(--dash-end);
+  }
+}
+
+.gauge-arc {
+  animation: dash-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gauge-arc {
+    animation: none;
+  }
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1;
+}
