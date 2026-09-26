@@ -27,15 +27,30 @@ export default function LiveDemo() {
   const [entry, setEntry] = useState<DemoEntry | null>(null);
   const [feed, setFeed] = useState<DemoEntry[]>([]);
   const lastTimestamp = useRef<string | null>(null);
+  // Bumped on reset so a poll already in flight can't repopulate what we just cleared.
+  const epoch = useRef(0);
+
+  async function handleReset() {
+    try {
+      await fetch(`${API_BASE}/demo/reset`, { method: "POST" });
+    } catch {
+      // backend unreachable — still clear locally so the demo can carry on
+    }
+    epoch.current += 1;
+    setEntry(null);
+    setFeed([]);
+    lastTimestamp.current = null;
+  }
 
   useEffect(() => {
     let mounted = true;
 
     async function poll() {
+      const polledAt = epoch.current;
       try {
         const res = await fetch(`${API_BASE}/demo/latest`, { cache: "no-store" });
         const data = await res.json();
-        if (!mounted || data.empty) return;
+        if (!mounted || epoch.current !== polledAt || data.empty) return;
         if (data.timestamp !== lastTimestamp.current) {
           lastTimestamp.current = data.timestamp;
           setEntry(data);
@@ -103,7 +118,16 @@ export default function LiveDemo() {
       </div>
 
       <div className="rounded-xl border border-ink-border bg-ink-surface p-5 shadow-panel">
-        <h3 className="mb-4 text-sm font-medium text-paper">Лента переводов</h3>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-sm font-medium text-paper">Лента переводов</h3>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="rounded-md border border-ink-border px-2.5 py-1 text-xs text-paper-muted transition hover:border-brass hover:text-brass"
+          >
+            Очистить
+          </button>
+        </div>
         {feed.length === 0 ? (
           <p className="text-sm text-paper-dim">Пока пусто.</p>
         ) : (
