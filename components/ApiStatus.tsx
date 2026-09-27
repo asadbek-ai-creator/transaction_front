@@ -1,10 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { API_BASE, checkHealth } from "@/lib/api";
+import InfoHint from "./ui/InfoHint";
+
+type Status = "checking" | "online" | "offline";
+
+const STYLE: Record<Status, { dot: string; text: string; box: string; label: string }> = {
+  checking: { dot: "bg-text-subtle animate-pulse", text: "text-text-muted", box: "border-line bg-white", label: "Проверяем сервер…" },
+  online: { dot: "bg-brand-600", text: "text-brand-800", box: "border-brand-200 bg-brand-50", label: "Сервер подключён" },
+  offline: { dot: "bg-risk-high", text: "text-risk-high", box: "border-risk-high/25 bg-risk-high-bg", label: "Сервер недоступен" },
+};
 
 export default function ApiStatus() {
-  const [status, setStatus] = useState<"checking" | "online" | "offline">("checking");
+  const [status, setStatus] = useState<Status>("checking");
+
+  const check = useCallback(() => {
+    setStatus("checking");
+    checkHealth().then((ok) => setStatus(ok ? "online" : "offline"));
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -16,17 +30,30 @@ export default function ApiStatus() {
     };
   }, []);
 
-  const dotColor =
-    status === "online" ? "bg-risk-low" : status === "offline" ? "bg-risk-high" : "bg-paper-dim";
-
-  const text =
-    status === "online" ? "API подключён" : status === "offline" ? "API недоступен" : "Проверка…";
+  const s = STYLE[status];
 
   return (
-    <div className="flex items-center gap-2 rounded-full border border-ink-border px-3 py-1 text-xs text-paper-muted">
-      <span className={`h-1.5 w-1.5 rounded-full ${dotColor}`} />
-      <span>{text}</span>
-      <span className="hidden font-mono text-paper-dim sm:inline">· {API_BASE}</span>
+    <div role="status" aria-live="polite" className="flex items-center gap-2">
+      <div className={`flex h-9 items-center gap-2 rounded-full border px-3 text-sm font-medium ${s.box} ${s.text}`}>
+        <span className={`h-2 w-2 rounded-full ${s.dot}`} />
+        <span>{s.label}</span>
+        {status === "offline" && (
+          <InfoHint
+            label="Как запустить сервер"
+            placement="bottom-end"
+            text={`Не удаётся связаться с ${API_BASE}. Запустите бэкенд: в папке backend выполните «uvicorn main:app --port 8000» и нажмите «Повторить».`}
+          />
+        )}
+      </div>
+      {status === "offline" && (
+        <button
+          type="button"
+          onClick={check}
+          className="h-9 rounded-full px-3 text-sm font-medium text-brand-800 hover:bg-brand-50"
+        >
+          Повторить
+        </button>
+      )}
     </div>
   );
 }

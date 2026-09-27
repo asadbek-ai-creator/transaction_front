@@ -3,18 +3,23 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
-  background-color: #0b0e13;
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(198, 138, 62, 0.08), transparent);
-  color: #e8ecf2;
+  background-color: #f5f8f6;
+  background-image: radial-gradient(ellipse 90% 380px at 50% -80px, rgba(34, 197, 94, 0.12), transparent);
+  background-repeat: no-repeat;
+  color: #0f1f17;
 }
 
 ::selection {
-  background: rgba(198, 138, 62, 0.35);
+  background: rgba(34, 197, 94, 0.25);
+}
+
+:focus-visible {
+  outline: 2px solid #16a34a;
+  outline-offset: 2px;
 }
 
 .ledger-table {
@@ -22,13 +27,14 @@ body {
   border-spacing: 0;
 }
 
-.ledger-table th {
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.01em;
-}
-
+.ledger-table th,
 .ledger-table td {
   font-variant-numeric: tabular-nums;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #eef2ef 0px, #f7faf8 120px, #eef2ef 240px);
+  background-size: 800px 100%;
 }
 
 @keyframes dash-in {
@@ -47,6 +53,12 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .gauge-arc {
     animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
