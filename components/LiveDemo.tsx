@@ -2,8 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { API_BASE } from "@/lib/api";
-import { featureLabel } from "@/lib/types";
-import RiskGauge from "./RiskGauge";
+import { formatPercent } from "@/lib/risk";
+import FeaturePanel from "./FeaturePanel";
+import RiskResult from "./RiskResult";
+import Button from "./ui/Button";
+import Card from "./ui/Card";
+import Icon from "./ui/Icon";
+import RiskBadge from "./ui/RiskBadge";
 
 interface DemoEntry {
   timestamp: string;
@@ -18,10 +23,16 @@ interface DemoEntry {
 
 const TYPE_LABEL: Record<string, string> = {
   karta: "Карта",
-  bank_otkazmasi: "Банк. перевод",
+  bank_otkazmasi: "Банковский перевод",
   naqd: "Наличные",
   xalqaro: "Международная",
 };
+
+const HOW_TO = [
+  "Откройте страницу /phone на телефоне (или в новой вкладке)",
+  "Введите номер карты, сумму и тип операции, нажмите «Отправить»",
+  "Оценка риска появится здесь автоматически через 1–2 секунды",
+];
 
 export default function LiveDemo() {
   const [entry, setEntry] = useState<DemoEntry | null>(null);
@@ -70,106 +81,128 @@ export default function LiveDemo() {
   }, []);
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1.1fr]">
-      <div className="rounded-xl border border-ink-border bg-ink-surface p-5 shadow-panel">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-sm font-medium text-paper">Последний перевод</h3>
-          <span className="flex items-center gap-1.5 text-xs text-paper-muted">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-risk-low" />
-            ожидание с телефона
-          </span>
-        </div>
-
-        {!entry ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
-            <p className="text-sm text-paper-dim">
-              Откройте <span className="font-mono text-paper-muted">/phone</span> на телефоне
-              и отправьте перевод — оценка появится здесь автоматически.
-            </p>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-4">
-            <RiskGauge probability={entry.ehtimollik} riskLevel={entry.risk_level} />
-            <div className="grid w-full grid-cols-2 gap-3 text-center">
-              <div className="rounded-lg border border-ink-border bg-ink px-3 py-2">
-                <div className="font-mono text-sm text-paper">
-                  {entry.amount_som.toLocaleString("ru-RU")} сум
-                </div>
-                <div className="text-xs text-paper-muted">{TYPE_LABEL[entry.tranzaksiya_turi]}</div>
-              </div>
-              <div className="rounded-lg border border-ink-border bg-ink px-3 py-2">
-                <div className="font-mono text-sm text-paper">{entry.masked_card}</div>
-                <div className="text-xs text-paper-muted">{entry.n_transactions} тр. в истории</div>
-              </div>
-            </div>
-            <div className="w-full border-t border-ink-border pt-3">
-              <p className="mb-2 text-xs font-medium text-paper-muted">Ключевые признаки</p>
-              <ul className="space-y-1.5">
-                {entry.top_features.map((f) => (
-                  <li key={f.name} className="flex items-center justify-between text-xs">
-                    <span className="text-paper-dim">{featureLabel(f.name)}</span>
-                    <span className="font-mono text-paper">{f.value.toFixed(3)}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="rounded-xl border border-ink-border bg-ink-surface p-5 shadow-panel">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-sm font-medium text-paper">Лента переводов</h3>
-          <button
-            type="button"
-            onClick={handleReset}
-            className="rounded-md border border-ink-border px-2.5 py-1 text-xs text-paper-muted transition hover:border-brass hover:text-brass"
+    <div className="space-y-6">
+      <Card title="Как провести демо">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <ol className="grid flex-1 gap-3 sm:grid-cols-3">
+            {HOW_TO.map((t, i) => (
+              <li key={t} className="flex items-start gap-2.5 text-sm text-text">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-800">
+                  {i + 1}
+                </span>
+                {t}
+              </li>
+            ))}
+          </ol>
+          <a
+            href="/phone"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-brand-700 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-brand-800"
           >
-            Очистить
-          </button>
+            <Icon name="phone" size={16} /> Открыть «телефон»
+            <Icon name="external" size={14} />
+          </a>
         </div>
-        {feed.length === 0 ? (
-          <p className="text-sm text-paper-dim">Пока пусто.</p>
-        ) : (
-          <div className="overflow-hidden rounded-lg border border-ink-border">
-            <table className="ledger-table w-full text-sm">
-              <thead>
-                <tr className="border-b border-ink-border bg-ink text-left text-xs text-paper-muted">
-                  <th className="px-3 py-2 font-medium">Время</th>
-                  <th className="px-3 py-2 font-medium">Карта</th>
-                  <th className="px-3 py-2 font-medium">Сумма</th>
-                  <th className="px-3 py-2 font-medium">Риск</th>
-                </tr>
-              </thead>
-              <tbody>
-                {feed.map((f, i) => (
-                  <tr key={f.timestamp + i} className="border-b border-ink-border last:border-0">
-                    <td className="px-3 py-1.5 font-mono text-xs text-paper-muted">
-                      {new Date(f.timestamp).toLocaleTimeString("ru-RU")}
-                    </td>
-                    <td className="px-3 py-1.5 font-mono text-xs text-paper">{f.masked_card}</td>
-                    <td className="px-3 py-1.5 font-mono text-xs text-paper">
-                      {f.amount_som.toLocaleString("ru-RU")}
-                    </td>
-                    <td className="px-3 py-1.5">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs ${
-                          f.risk_level === "high"
-                            ? "bg-risk-high/15 text-risk-high"
-                            : f.risk_level === "medium"
-                            ? "bg-risk-medium/15 text-risk-medium"
-                            : "bg-risk-low/15 text-risk-low"
-                        }`}
-                      >
-                        {(f.ehtimollik * 100).toFixed(1)}%
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <p className="mt-4 text-xs text-text-subtle">
+          С реального телефона: откройте <span className="font-mono">http://&lt;IP-компьютера&gt;:3000/phone</span> в
+          той же Wi-Fi сети.
+        </p>
+      </Card>
+
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_1.1fr]">
+        <Card
+          title="Последний перевод"
+          action={
+            <span className="flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-800">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-500 opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-600" />
+              </span>
+              Ожидаем переводы
+            </span>
+          }
+        >
+          <div aria-live="polite">
+            {!entry ? (
+              <div className="flex flex-col items-center py-10 text-center">
+                <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-brand-50 text-brand-700">
+                  <Icon name="phone" size={26} />
+                </span>
+                <p className="text-sm font-medium text-text">Пока нет переводов</p>
+                <p className="mt-1 max-w-xs text-sm text-text-muted">
+                  Отправьте перевод со страницы «телефона» — оценка появится здесь автоматически.
+                </p>
+              </div>
+            ) : (
+              <div key={entry.timestamp} className="animate-flash rounded-xl">
+                <div className="mb-5 grid grid-cols-2 gap-3">
+                  <div className="rounded-lg border border-line bg-canvas/60 px-3 py-2.5">
+                    <div className="text-xs text-text-muted">Сумма</div>
+                    <div className="font-semibold tabular-nums text-text">
+                      {entry.amount_som.toLocaleString("ru-RU")} сум
+                    </div>
+                    <div className="text-xs text-text-subtle">{TYPE_LABEL[entry.tranzaksiya_turi]}</div>
+                  </div>
+                  <div className="rounded-lg border border-line bg-canvas/60 px-3 py-2.5">
+                    <div className="text-xs text-text-muted">Карта получателя</div>
+                    <div className="font-mono font-semibold text-text">{entry.masked_card}</div>
+                    <div className="text-xs text-text-subtle">{entry.n_transactions} операций в истории</div>
+                  </div>
+                </div>
+                <RiskResult probability={entry.ehtimollik} level={entry.risk_level}>
+                  <FeaturePanel features={entry.top_features} />
+                </RiskResult>
+              </div>
+            )}
           </div>
-        )}
+        </Card>
+
+        <Card
+          title="Лента переводов"
+          subtitle="Последние 8 переводов, новые сверху"
+          action={
+            <Button variant="secondary" size="sm" icon="trash" onClick={handleReset} disabled={feed.length === 0}>
+              Очистить ленту
+            </Button>
+          }
+        >
+          {feed.length === 0 ? (
+            <p className="rounded-lg bg-canvas px-4 py-8 text-center text-sm text-text-subtle">Пока пусто.</p>
+          ) : (
+            <div className="overflow-x-auto rounded-lg border border-line">
+              <table className="ledger-table w-full min-w-[420px] text-sm">
+                <thead className="bg-canvas">
+                  <tr className="text-left text-xs text-text-muted">
+                    <th className="border-b border-line px-4 py-2.5 font-medium">Время</th>
+                    <th className="border-b border-line px-4 py-2.5 font-medium">Карта</th>
+                    <th className="border-b border-line px-4 py-2.5 text-right font-medium">Сумма, сум</th>
+                    <th className="border-b border-line px-4 py-2.5 font-medium">Риск</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {feed.map((f, i) => (
+                    <tr key={f.timestamp + i} className={i === 0 ? "bg-brand-50/60" : "bg-white"}>
+                      <td className="border-b border-line px-4 py-2.5 font-mono text-xs text-text-muted">
+                        {new Date(f.timestamp).toLocaleTimeString("ru-RU")}
+                      </td>
+                      <td className="border-b border-line px-4 py-2.5 font-mono text-xs text-text">{f.masked_card}</td>
+                      <td className="border-b border-line px-4 py-2.5 text-right font-mono text-xs text-text">
+                        {f.amount_som.toLocaleString("ru-RU")}
+                      </td>
+                      <td className="border-b border-line px-4 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <RiskBadge level={f.risk_level} short />
+                          <span className="text-xs tabular-nums text-text-muted">{formatPercent(f.ehtimollik)}</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
       </div>
     </div>
   );

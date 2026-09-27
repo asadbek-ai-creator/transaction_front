@@ -54,7 +54,7 @@ export default function PhonePage() {
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-[#e9edf3] p-6">
+    <div className="fixed inset-0 flex items-center justify-center bg-[#eef5f0] p-6">
       {/* Phone frame */}
       <div className="flex h-[720px] w-[360px] flex-col overflow-hidden rounded-[2.5rem] border-[10px] border-[#1a1a1a] bg-white shadow-2xl">
         {/* Status bar */}
@@ -68,8 +68,8 @@ export default function PhonePage() {
         </div>
 
         {/* App header */}
-        <div className="bg-[#1f5fd1] px-5 pb-5 pt-2 text-white">
-          <p className="text-xs text-white/70">TezPay Bank</p>
+        <div className="bg-[#15803d] px-5 pb-5 pt-2 text-white">
+          <p className="text-xs text-white/75">TezPay Bank · демо</p>
           <p className="mt-0.5 text-lg font-semibold">Перевод по карте</p>
         </div>
 
@@ -78,21 +78,26 @@ export default function PhonePage() {
           {screen === "form" && (
             <div className="flex flex-col gap-5">
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-[#5b6472]">
+                <label className="mb-1.5 block text-xs font-medium text-[#4b5b53]">
                   Номер карты получателя
                 </label>
                 <input
                   inputMode="numeric"
-                  value={cardNumber}
+                  value={cardNumber.replace(/(\d{4})(?=\d)/g, "$1 ")}
                   onChange={(e) => setCardNumber(e.target.value.replace(/[^\d]/g, "").slice(0, 16))}
                   placeholder="8600 1234 5678 9012"
-                  className="w-full rounded-xl border border-[#e1e5eb] bg-[#f6f8fb] px-4 py-3 text-base tracking-wide text-[#111] outline-none focus:border-[#1f5fd1]"
+                  className="w-full rounded-xl border border-[#dfe7e2] bg-[#f4f8f5] px-4 py-3 text-base tracking-wide text-[#111] outline-none focus:border-[#15803d] focus:ring-2 focus:ring-[#15803d]/15"
                 />
+                <p className="mt-1 text-xs text-[#6b7a72]">
+                  {cardNumber.length > 0 && cardNumber.length < 12
+                    ? `Ещё минимум ${12 - cardNumber.length} цифр`
+                    : "12–16 цифр"}
+                </p>
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-[#5b6472]">Сумма</label>
-                <div className="flex items-center rounded-xl border border-[#e1e5eb] bg-[#f6f8fb] px-4 py-3">
+                <label className="mb-1.5 block text-xs font-medium text-[#4b5b53]">Сумма</label>
+                <div className="flex items-center rounded-xl border border-[#dfe7e2] bg-[#f4f8f5] px-4 py-3 focus-within:border-[#15803d] focus-within:ring-2 focus-within:ring-[#15803d]/15">
                   <input
                     inputMode="numeric"
                     value={amountRaw}
@@ -100,21 +105,24 @@ export default function PhonePage() {
                     placeholder="0"
                     className="w-full bg-transparent text-2xl font-semibold text-[#111] outline-none"
                   />
-                  <span className="ml-2 text-lg text-[#5b6472]">сум</span>
+                  <span className="ml-2 text-lg text-[#4b5b53]">сум</span>
                 </div>
+                <p className="mt-1 text-xs text-[#6b7a72]">Сумма перевода в узбекских сумах</p>
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-[#5b6472]">Тип операции</label>
+                <label className="mb-1.5 block text-xs font-medium text-[#4b5b53]">Тип операции</label>
                 <div className="grid grid-cols-2 gap-2">
                   {TYPE_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
+                      type="button"
+                      aria-pressed={txType === opt.value}
                       onClick={() => setTxType(opt.value)}
                       className={`rounded-xl border px-3 py-2.5 text-sm transition ${
                         txType === opt.value
-                          ? "border-[#1f5fd1] bg-[#1f5fd1]/10 text-[#1f5fd1]"
-                          : "border-[#e1e5eb] text-[#5b6472]"
+                          ? "border-[#15803d] bg-[#15803d]/10 text-[#15803d]"
+                          : "border-[#dfe7e2] text-[#4b5b53]"
                       }`}
                     >
                       {opt.label}
@@ -127,25 +135,25 @@ export default function PhonePage() {
 
           {screen === "sending" && (
             <div className="flex h-full flex-col items-center justify-center gap-3">
-              <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#e1e5eb] border-t-[#1f5fd1]" />
-              <p className="text-sm text-[#5b6472]">Отправка перевода…</p>
+              <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#dfe7e2] border-t-[#15803d]" />
+              <p className="text-sm text-[#4b5b53]">Отправка перевода…</p>
             </div>
           )}
 
           {screen === "success" && (
             <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#e5f6ec]">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#dcfce7]">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                  <path d="M5 13l4 4L19 7" stroke="#2f9e6e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M5 13l4 4L19 7" stroke="#15803d" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
               <div>
                 <p className="text-lg font-semibold text-[#111]">Перевод отправлен</p>
-                <p className="mt-1 text-sm text-[#5b6472]">{amountRaw} сум успешно переведено</p>
+                <p className="mt-1 text-sm text-[#4b5b53]">{amountRaw} сум успешно переведено</p>
               </div>
               <button
                 onClick={reset}
-                className="mt-4 rounded-xl bg-[#f6f8fb] px-5 py-2.5 text-sm font-medium text-[#1f5fd1]"
+                className="mt-4 rounded-xl bg-[#f4f8f5] px-5 py-2.5 text-sm font-medium text-[#15803d]"
               >
                 Новый перевод
               </button>
@@ -154,12 +162,12 @@ export default function PhonePage() {
 
           {screen === "error" && (
             <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
-              <p className="text-sm text-[#c1443c]">
+              <p className="text-sm text-[#b91c1c]">
                 Не удалось выполнить перевод. Проверьте соединение с сервером.
               </p>
               <button
                 onClick={reset}
-                className="rounded-xl bg-[#f6f8fb] px-5 py-2.5 text-sm font-medium text-[#1f5fd1]"
+                className="rounded-xl bg-[#f4f8f5] px-5 py-2.5 text-sm font-medium text-[#15803d]"
               >
                 Назад
               </button>
@@ -173,7 +181,7 @@ export default function PhonePage() {
             <button
               onClick={handleSend}
               disabled={!canSubmit}
-              className="w-full rounded-xl bg-[#1f5fd1] py-3.5 text-base font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-40"
+              className="w-full rounded-xl bg-[#15803d] py-3.5 text-base font-medium text-white transition hover:bg-[#166534] disabled:cursor-not-allowed disabled:opacity-40"
             >
               Отправить
             </button>
